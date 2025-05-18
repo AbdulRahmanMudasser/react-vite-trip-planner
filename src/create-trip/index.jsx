@@ -15,24 +15,26 @@ import { useNavigate } from "react-router";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 
 function CreateTrip() {
+  // Step 1: Add numberOfPeople to formData state
   const [formData, setFormData] = useState({
-    departureLocation: null, // Changed to object for GooglePlacesAutocomplete
-    destination: null,      // Changed to object for GooglePlacesAutocomplete
+    departureLocation: null,
+    destination: null,
     days: "",
     budget: "",
     companion: "",
+    numberOfPeople: "", // New field for number of people
   });
 
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Optimized Input Handler
+  // Optimized Input Handler (already generic, works for numberOfPeople)
   const handleInputChange = useCallback((name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  // Google Login Function
+  // Google Login Function (unchanged)
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       console.log("Google Login Success:", tokenResponse);
@@ -41,7 +43,7 @@ function CreateTrip() {
     onError: (error) => console.log("Login Error:", error),
   });
 
-  // Function to Generate Trip
+  // Step 2: Update onGenerateTrip to include numberOfPeople in validation and prompt
   const onGenerateTrip = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     console.log("User Data from Local Storage:", user);
@@ -52,8 +54,9 @@ function CreateTrip() {
       return;
     }
 
-    const { departureLocation, destination, days, budget, companion } = formData;
-    if (!departureLocation || !destination || !days || !budget || !companion) {
+    const { departureLocation, destination, days, budget, companion, numberOfPeople } = formData;
+    // Updated validation to include numberOfPeople
+    if (!departureLocation || !destination || !days || !budget || !companion || !numberOfPeople) {
       toast("Please fill in all fields before generating the trip.");
       return;
     }
@@ -64,8 +67,10 @@ function CreateTrip() {
     }
 
     setLoading(true);
-    const final_prompt = AI_Prompt.replace("{destination}", destination.label) // Use label for prompt
+    // Updated AI prompt replacement to include numberOfPeople
+    const final_prompt = AI_Prompt.replace("{destination}", destination.label)
       .replace("{days}", days)
+      .replace("{numberOfPeople}", numberOfPeople) // New replacement
       .replace("{companion}", companion)
       .replace("{budget}", budget);
 
@@ -83,7 +88,7 @@ function CreateTrip() {
     }
   };
 
-  // Save AI-Generated Trip to Firebase
+  // Step 3: Ensure numberOfPeople is saved in Firebase (already included via spread)
   const SaveAiTrip = async (TripData) => {
     setLoading(true);
     const user = JSON.parse(localStorage.getItem("user"));
@@ -93,8 +98,9 @@ function CreateTrip() {
     await setDoc(doc(db, "AITrips", docId), {
       userSelection: {
         ...formData,
-        departureLocation: formData.departureLocation?.label, // Store only the label
-        destination: formData.destination?.label,           // Store only the label
+        departureLocation: formData.departureLocation?.label,
+        destination: formData.destination?.label,
+        // numberOfPeople is included via ...formData
       },
       tripData: JSON.parse(TripData),
       userEmail: user?.email,
@@ -105,7 +111,7 @@ function CreateTrip() {
     navigate(`/view-trip/${docId}`);
   };
 
-  // Fetch User Profile after Login
+  // Fetch User Profile after Login (unchanged)
   const GetUserProfile = async (tokenInfo) => {
     try {
       const response = await axios.get(
@@ -120,8 +126,6 @@ function CreateTrip() {
 
       localStorage.setItem("user", JSON.stringify(response.data));
       setOpenDialog(false);
-
-      // Retry trip generation after login
       onGenerateTrip();
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -142,8 +146,8 @@ function CreateTrip() {
           <GooglePlacesAutocomplete
             apiKey={import.meta.env.VITE_GOOGLE_PLACE_KEY}
             selectProps={{
-              value: formData.departureLocation, // Object with label and value
-              onChange: (place) => handleInputChange("departureLocation", place), // Store the entire place object
+              value: formData.departureLocation,
+              onChange: (place) => handleInputChange("departureLocation", place),
               isClearable: true,
               placeholder: "Enter departure location...",
             }}
@@ -160,8 +164,8 @@ function CreateTrip() {
           <GooglePlacesAutocomplete
             apiKey={import.meta.env.VITE_GOOGLE_PLACE_KEY}
             selectProps={{
-              value: formData.destination, // Object with label and value
-              onChange: (place) => handleInputChange("destination", place), // Store the entire place object
+              value: formData.destination,
+              onChange: (place) => handleInputChange("destination", place),
               isClearable: true,
               placeholder: "Enter destination...",
             }}
@@ -183,6 +187,18 @@ function CreateTrip() {
           />
         </div>
 
+        {/* Step 4: Add Number of People input field */}
+        <div>
+          <h2 className="text-xl my-3 font-medium">How many people are traveling?</h2>
+          <Input
+            type="number"
+            placeholder="Ex. 2"
+            min="1" // Ensures a positive number
+            value={formData.numberOfPeople}
+            onChange={(e) => handleInputChange("numberOfPeople", e.target.value)}
+          />
+        </div>
+
         {/* Budget */}
         <div>
           <h2 className="text-xl my-3 font-medium">What is Your Budget?</h2>
@@ -190,9 +206,8 @@ function CreateTrip() {
             {SelectBudgetOptions.map((item, index) => (
               <div
                 key={index}
-                className={`p-4 border cursor-pointer rounded-lg ${
-                  formData.budget === item.title ? "shadow-2xl border-black" : ""
-                }`}
+                className={`p-4 border cursor-pointer rounded-lg ${formData.budget === item.title ? "shadow-2xl border-black" : ""
+                  }`}
                 onClick={() => handleInputChange("budget", item.title)}
               >
                 <h2 className="text-3xl">{item.icon}</h2>
@@ -210,9 +225,8 @@ function CreateTrip() {
             {SelectTravelsList.map((item, index) => (
               <div
                 key={index}
-                className={`p-4 border cursor-pointer rounded-lg ${
-                  formData.companion === item.title ? "shadow-2xl border-black" : ""
-                }`}
+                className={`p-4 border cursor-pointer rounded-lg ${formData.companion === item.title ? "shadow-2xl border-black" : ""
+                  }`}
                 onClick={() => handleInputChange("companion", item.title)}
               >
                 <h2 className="text-3xl">{item.icon}</h2>
@@ -241,7 +255,6 @@ function CreateTrip() {
               </div>
               <h2 className="font-bold text-lg mt-7">Sign In With Google</h2>
               <p>Sign in to the App with Google authentication</p>
-
               <Button onClick={login} className="w-full mt-5 gap-4 items-center">
                 <FcGoogle />
                 Sign In With Google

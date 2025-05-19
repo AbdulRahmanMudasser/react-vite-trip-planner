@@ -1,3 +1,4 @@
 djangorestframework
 stripe
 dotenv
+django-cors-headers 

@@ -1,42 +1,49 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { RouterProvider , createBrowserRouter } from 'react-router-dom'
-import CreateTrip from './create-trip/index.jsx'
-import Viewtrip from './view-trip/[tripid]/index.jsx'
-import Header from './components/custom/Header'
-import { Toaster } from "@/components/ui/sonner"
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.jsx';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import CreateTrip from './create-trip/index.jsx';
+import Viewtrip from './view-trip/[tripid]/index.jsx';
+import Header from './components/custom/Header';
+import { Toaster } from '@/components/ui/sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import MyTrips from './my-trips'
+import MyTrips from './my-trips';
+import HotelBookingPage from './book-hotel/index.jsx'; // Import the new page
+import SuccessPage from './success';
 
-
-
-
-const router = createBrowserRouter ([
+const router = createBrowserRouter([
   {
-    path:'/',
-    element:<App/>
+    path: '/',
+    element: <App />,
   },
   {
-    path:'/create-trip',
-    element:<CreateTrip/>
+    path: '/create-trip',
+    element: <CreateTrip />,
   },
   {
-    path:'/view-trip/:tripId',
-    element:<Viewtrip/>
+    path: '/view-trip/:tripId',
+    element: <Viewtrip />,
   },
   {
-    path:'/my-trips',
-    element:<MyTrips/>
-  }
-])
+    path: '/my-trips',
+    element: <MyTrips />,
+  },
+  {
+    path: '/book-hotel/:tripId', // New route for hotel booking
+    element: <HotelBookingPage />,
+  },
+  {
+    path: '/success',
+    element: <SuccessPage />,
+},
+]);
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}> 
-    {/* <Header></Header> */}
-    <Toaster />
-    <RouterProvider router={router} />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
+      <Toaster />
+      <RouterProvider router={router} />
     </GoogleOAuthProvider>
-  </StrictMode>,
-)
+  </StrictMode>
+);

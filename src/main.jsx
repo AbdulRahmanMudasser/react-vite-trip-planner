@@ -5,12 +5,12 @@ import App from './App.jsx';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import CreateTrip from './create-trip/index.jsx';
 import Viewtrip from './view-trip/[tripid]/index.jsx';
-import Header from './components/custom/Header';
 import { Toaster } from '@/components/ui/sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import MyTrips from './my-trips';
-import HotelBookingPage from './book-hotel/index.jsx'; // Import the new page
+import HotelBookingPage from './book-hotel/index.jsx';
 import SuccessPage from './success';
+import CancelPage from './cancel';
 
 const router = createBrowserRouter([
   {
@@ -36,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: '/success',
     element: <SuccessPage />,
+  },
+  {
+    path: '/cancel',
+    element: <CancelPage />,
   },
 ]);
 

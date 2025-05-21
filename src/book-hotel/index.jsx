@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/service/firebaseConfig";
 
-// Stripe Public Key
+// Load Stripe with public key from environment variable
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 const HotelBookingPage = () => {
   const { tripId } = useParams();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const hotel = state?.hotel;
 
   const [pricePerNight, setPricePerNight] = useState(0);
@@ -37,11 +38,30 @@ const HotelBookingPage = () => {
   }, []);
 
   /**
+   * Validate tripId and hotel on mount.
+   */
+  useEffect(() => {
+    console.log("tripId from useParams:", tripId);
+    console.log("Hotel from state:", hotel);
+
+    if (!tripId) {
+      setError("Invalid trip ID.");
+      navigate("/");
+      return;
+    }
+    if (!hotel || !hotel.hotelName) {
+      setError("Hotel information is missing.");
+      navigate("/");
+    }
+  }, [tripId, hotel, navigate]);
+
+  /**
    * Calculate price per night from hotel data.
    */
   useEffect(() => {
     if (!hotel?.price) {
       setPricePerNight(0);
+      setError("Hotel price information is missing.");
       return;
     }
 
@@ -57,10 +77,14 @@ const HotelBookingPage = () => {
         setPricePerNight(finalPrice);
       } else {
         setPricePerNight(0);
+        setError("Invalid hotel price format.");
       }
     } else {
       const fallbackPrice = parseFloat(hotel?.pricePerNight ?? hotel?.price ?? 0);
       setPricePerNight(Number.isFinite(fallbackPrice) && fallbackPrice > 0 ? fallbackPrice : 0);
+      if (fallbackPrice <= 0) {
+        setError("Invalid fallback price.");
+      }
     }
   }, [hotel?.price, hotel?.pricePerNight]);
 
@@ -78,6 +102,8 @@ const HotelBookingPage = () => {
           if (Number.isFinite(numberOfPeople)) {
             setFormData((prev) => ({ ...prev, guests: numberOfPeople }));
           }
+        } else {
+          setError("Trip not found.");
         }
       } catch (err) {
         console.error("Error fetching guest count:", err);
@@ -143,12 +169,37 @@ const HotelBookingPage = () => {
       setError("Please select valid check-in and check-out dates and ensure a valid price.");
       return;
     }
+    if (!tripId || !hotel?.hotelName) {
+      setError("Missing trip or hotel information.");
+      return;
+    }
 
     setIsLoading(true);
     try {
       // Check if Stripe is loaded
       if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
         throw new Error("Stripe public key is not configured.");
+      }
+
+      const bookingDetails = {
+        hotel,
+        formData,
+        totalPrice,
+        pricePerNight,
+        tripId,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Log bookingDetails for debugging
+      console.log("Preparing to save bookingDetails:", bookingDetails);
+
+      // Save to localStorage with error handling
+      try {
+        localStorage.setItem("bookingDetails", JSON.stringify(bookingDetails));
+        console.log("Successfully saved to localStorage:", JSON.parse(localStorage.getItem("bookingDetails")));
+      } catch (storageError) {
+        console.error("Failed to save to localStorage:", storageError);
+        throw new Error("Unable to save booking details to localStorage.");
       }
 
       const response = await fetch("http://localhost:8000/api/create-checkout-session/", {
@@ -174,16 +225,6 @@ const HotelBookingPage = () => {
       }
 
       const { id: sessionId } = await response.json();
-      localStorage.setItem(
-        "bookingDetails",
-        JSON.stringify({
-          hotel,
-          formData,
-          totalPrice,
-          pricePerNight,
-          timestamp: new Date().toISOString(),
-        })
-      );
 
       const stripe = await stripePromise;
       if (!stripe) {
@@ -209,8 +250,12 @@ const HotelBookingPage = () => {
   const hotelImageURL =
     hotel?.hotelImageURL || "https://placehold.co/800?text=Loading+Image&font=roboto";
 
-  if (!hotel) {
-    return <div className="text-center p-4 text-black">Loading hotel details...</div>;
+  if (!hotel || !tripId) {
+    return (
+      <div className="text-center p-4 text-black">
+        Loading hotel details or invalid trip ID...
+      </div>
+    );
   }
 
   return (

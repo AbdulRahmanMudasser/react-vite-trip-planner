@@ -12,7 +12,7 @@ import stripe
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 EXCHANGE_RATE_PKR_TO_USD = 1 / 291 
 SUCCESS_URL = "http://localhost:5173/success"
-CANCEL_URL = "http://localhost:5173/booking/cancel"
+CANCEL_URL = "http://localhost:5173/cancel"
 REQUIRED_FIELDS = ["tripId", "checkIn", "checkOut", "guests", "name", "email", "totalPrice"]
 
 # Configure logging

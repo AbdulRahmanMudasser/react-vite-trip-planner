@@ -1,8 +1,6 @@
-import json
 import logging
 import os
 from typing import Dict, Any
-from django.conf import settings
 from rest_framework import views, status
 from rest_framework.response import Response
 from dotenv import load_dotenv
@@ -14,6 +12,12 @@ EXCHANGE_RATE_PKR_TO_USD = 1 / 291
 SUCCESS_URL = "http://localhost:5173/success"
 CANCEL_URL = "http://localhost:5173/cancel"
 REQUIRED_FIELDS = ["tripId", "checkIn", "checkOut", "guests", "name", "email", "totalPrice"]
+RIDE_SUCCESS_URL = "http://localhost:5173/ride-success"
+RIDE_CANCEL_URL = "http://localhost:5173/ride-cancel"
+RIDE_REQUIRED_FIELDS = [
+    "rideOptionId", "rideId", "pickupTime", "passengers", "name", "email",
+    "totalPrice", "company", "vehicleType"
+]
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -155,6 +159,104 @@ class CreateCheckoutSessionView(views.APIView):
             )
         except Exception as e:
             logger.error(f"Error creating checkout session: {str(e)}", exc_info=True)
+            return Response(
+                {"error": f"Server error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+class CreateRideCheckoutSessionView(views.APIView):
+    """API view to create a Stripe checkout session for ride bookings."""
+
+    def post(self, request: Any) -> Response:
+        """Handle POST requests to create a Stripe checkout session for rides.
+
+        Args:
+            request: The HTTP request containing ride booking details.
+
+        Returns:
+            Response: JSON response with the Stripe session ID or an error message.
+        """
+        try:
+            # Log sanitized request data
+            logger.info(
+                f"Received ride payment request for rideId: {request.data.get('rideId', 'unknown')}"
+            )
+
+            # Validate request data
+            validate_request_data(request.data, RIDE_REQUIRED_FIELDS)
+
+            # Convert totalPrice from PKR to USD cents
+            try:
+                total_price_pkr = float(request.data["totalPrice"])
+                unit_amount_cents = convert_pkr_to_usd_cents(total_price_pkr)
+                total_price_usd = total_price_pkr * EXCHANGE_RATE_PKR_TO_USD
+            except ValueError as e:
+                logger.error(f"Invalid totalPrice format: {str(e)}")
+                return Response(
+                    {"error": "Invalid totalPrice format"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Create line items for Stripe
+            line_items = [
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"{request.data['company']} {request.data['vehicleType']} Ride",
+                            "description": (
+                                f"Ride from {request.data.get('departure', 'N/A')} to "
+                                f"{request.data.get('destination', 'N/A')} - "
+                                f"{request.data['passengers']} passengers"
+                            ),
+                        },
+                        "unit_amount": unit_amount_cents,
+                    },
+                    "quantity": 1,
+                }
+            ]
+
+            # Create Stripe checkout session
+            session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=line_items,
+                mode="payment",
+                success_url=RIDE_SUCCESS_URL,
+                cancel_url=RIDE_CANCEL_URL,
+                customer_email=request.data.get("email"),
+                metadata={
+                    "rideOptionId": request.data["rideOptionId"],
+                    "rideId": request.data["rideId"],
+                    "pickupTime": request.data["pickupTime"],
+                    "passengers": str(request.data["passengers"]),
+                    "name": request.data["name"],
+                    "email": request.data["email"],
+                    "phone": request.data.get("phone", ""),
+                    "company": request.data["company"],
+                    "vehicleType": request.data["vehicleType"],
+                    "departure": request.data.get("departure", ""),
+                    "destination": request.data.get("destination", ""),
+                    "totalPricePKR": str(total_price_pkr),
+                    "totalPriceUSD": str(round(total_price_usd, 2)),
+                },
+            )
+
+            logger.info(f"Stripe session created successfully: {session.id} for ride booking")
+            return Response({"id": session.id}, status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error: {str(e)}")
+            return Response(
+                {"error": f"Stripe error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error(f"Error creating ride checkout session: {str(e)}", exc_info=True)
             return Response(
                 {"error": f"Server error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

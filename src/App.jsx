@@ -12,18 +12,16 @@ import Footer from './components/custom/footer'
 
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <div style={{width:'100%'}}>
-    <Header/>
+    <div style={{ width: '100%' }}>
+      <Header />
       <Hero></Hero>
-      <WhatWeOfferSection/>
-      <TripPlannerSection/>
-      <AboutUs/>
-      <ContactUs/>
-      <Footer/>
-
+      <WhatWeOfferSection />
+      <TripPlannerSection />
+      <AboutUs />
+      <ContactUs />
+      <Footer />
     </div>
   )
 }

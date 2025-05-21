@@ -14,6 +14,7 @@ import CancelPage from './cancel';
 import RideBookingPage from './view-trip/[tripid]/components/RideBookingPage.jsx';
 import RideSuccessPage from './ride-success';
 import RideCancelPage from './ride-cancel';
+import Dashboard from './dashboard';
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
   {
     path: '/ride-cancel',
     element: <RideCancelPage />,
+  },
+  {
+    path: '/dashboard',
+    element: <Dashboard />,
   },
 ]);
 

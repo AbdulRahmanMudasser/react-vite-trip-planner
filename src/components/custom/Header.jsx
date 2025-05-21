@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate, Link } from 'react-router-dom';
 import axios from "axios";
 import {
   Popover,
@@ -74,6 +75,11 @@ function Header() {
                 My Trip
               </Button>
             </a>
+            <Link to="/dashboard">
+              <Button variant="outline" className="rounded-full">
+                Dashboard
+              </Button>
+            </Link>
 
             <Popover>
               <PopoverTrigger>

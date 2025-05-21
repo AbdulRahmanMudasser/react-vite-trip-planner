@@ -115,6 +115,12 @@ const SuccessPage = () => {
             <p className="text-gray-600">
               Your booking has been confirmed. Thank you for choosing us!
             </p>
+            <button
+              onClick={() => navigate("/")}
+              className="mt-4 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 text-center"
+            >
+              Back to Home
+            </button>
           </>
         )}
       </div>

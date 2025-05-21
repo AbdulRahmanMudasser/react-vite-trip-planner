@@ -36,7 +36,7 @@ const router = createBrowserRouter([
   {
     path: '/success',
     element: <SuccessPage />,
-},
+  },
 ]);
 
 createRoot(document.getElementById('root')).render(

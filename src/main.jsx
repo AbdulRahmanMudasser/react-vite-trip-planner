@@ -11,6 +11,9 @@ import MyTrips from './my-trips';
 import HotelBookingPage from './book-hotel/index.jsx';
 import SuccessPage from './success';
 import CancelPage from './cancel';
+import RideBookingPage from './view-trip/[tripid]/components/RideBookingPage.jsx';
+import RideSuccessPage from './ride-success';
+import RideCancelPage from './ride-cancel';
 
 const router = createBrowserRouter([
   {
@@ -30,7 +33,7 @@ const router = createBrowserRouter([
     element: <MyTrips />,
   },
   {
-    path: '/book-hotel/:tripId', // New route for hotel booking
+    path: '/book-hotel/:tripId',
     element: <HotelBookingPage />,
   },
   {
@@ -40,6 +43,18 @@ const router = createBrowserRouter([
   {
     path: '/cancel',
     element: <CancelPage />,
+  },
+  {
+    path: '/ride-booking/:rideOptionId',
+    element: <RideBookingPage />,
+  },
+  {
+    path: '/ride-success',
+    element: <RideSuccessPage />,
+  },
+  {
+    path: '/ride-cancel',
+    element: <RideCancelPage />,
   },
 ]);
 

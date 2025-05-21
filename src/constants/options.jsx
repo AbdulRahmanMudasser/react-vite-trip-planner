@@ -1,11 +1,3 @@
-import { IoMdCash } from "react-icons/io";
-//import { TbMoneybag } from "react-icons/tb";
-import { RiVipCrownFill } from "react-icons/ri";
-import { FaPlane } from "react-icons/fa";
-import { PiCheersFill } from "react-icons/pi";
-import { IoHome } from "react-icons/io5";
-import { FaBus } from "react-icons/fa6";
-
 export const SelectTravelsList=[
     {
         id:1,
@@ -57,4 +49,4 @@ export const SelectBudgetOptions=[
     },
 ]
 
-export const AI_Prompt = 'Generate Travel Plan For Location: {destination}, for {days} Days for {numberOfPeople} Number of People for {companion} with a budget of {budget} in PKR in the format lowest range - highest range (e.g., 25000 - 50000). Ensure all prices, including budget, hotel prices, and ticket pricing, are provided in PKR. If prices are available in dollars, convert them to PKR using the current exchange rate (e.g., 1 USD = 291 PKR, or the most recent rate available). Provide a Hotel options list with HotelName, Hotel address, Price in the format lowest range - highest range (e.g., 25000 - 50000), hotel image url, geo coordinates, ticket Pricing, Time travel each of the location for {days} days with each day plan with best time to visit in JSON format.'
+export const AI_Prompt = 'Generate Travel Plan For Location: {destination}, for {days} Days for {numberOfPeople} Number of People for {companion} with a budget of {budget} in PKR in the format lowest range - highest range (e.g., 25000 - 50000). Ensure all prices, including budget, hotel prices, and ticket pricing, are provided in PKR. If prices are available in dollars, convert them to PKR using the current exchange rate (e.g., 1 USD = 291 PKR). Provide a Hotel options list with HotelName, Hotel address, Price in the format lowest range - highest range (e.g., 25000 - 50000), hotel image url, geo coordinates, ticket Pricing, Time travel each of the location for {days} days with each day plan with best time to visit in JSON format.'

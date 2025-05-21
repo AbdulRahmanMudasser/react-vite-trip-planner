@@ -32,7 +32,7 @@ function InfoSection({ trip }) {
         }
     };
     return (
-        <div className='max-w-6xl mx-auto p-5'>
+        <div className='max-w-6xl mx-auto p-10'>
             <img src={photoUrl} alt="" />
             <div className='flex justify-between items-center  mx-auto'>
                 <div className='my-5 flex flex-col gap-2'>
